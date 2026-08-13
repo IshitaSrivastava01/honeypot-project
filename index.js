@@ -1,4 +1,6 @@
 const express = require('express');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 const fs = require('fs');
 
 // Reusable function to log any attack attempt in structured format
@@ -49,6 +51,16 @@ app.get('/search', (req, res) => {
   const query = req.query.q || '';
   logAttempt('search_attempt', req, { query: query });
   res.status(200).send('No results found.');
+});
+
+// Fake file upload endpoint — attackers often test if they can upload malicious files
+app.post('/upload', upload.single('file'), (req, res) => {
+  logAttempt('file_upload_attempt', req, {
+    filename: req.file ? req.file.originalname : 'unknown',
+    mimetype: req.file ? req.file.mimetype : 'unknown',
+    size: req.file ? req.file.size : 0
+  });
+  res.status(500).json({ error: 'Upload failed. Please try again later.' });
 });
 
 // Deliberately generic homepage
