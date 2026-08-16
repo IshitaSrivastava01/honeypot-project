@@ -22,6 +22,38 @@ function logAttempt(eventType, req, extra = {}) {
   console.log(entry);
 }
 
+// Track login attempts per IP for brute-force detection
+const loginAttempts = {};
+
+function isBruteForce(ip) {
+  const now = Date.now();
+  const windowMs = 30 * 1000;
+  const maxAttempts = 3;
+
+  if (!loginAttempts[ip]) {
+    loginAttempts[ip] = [];
+  }
+
+  loginAttempts[ip] = loginAttempts[ip].filter(ts => now - ts < windowMs);
+  loginAttempts[ip].push(now);
+
+  return loginAttempts[ip].length > maxAttempts;
+}
+
+// Detect common SQLi and XSS patterns in user input
+function detectAttackType(input) {
+  const sqliPatterns = [/('|--|;|\bOR\b|\bUNION\b|\bSELECT\b)/i];
+  const xssPatterns = [/<script.*?>|javascript:|onerror\s*=|onload\s*=/i];
+
+  if (sqliPatterns.some(pattern => pattern.test(input))) {
+    return 'sqli_attempt';
+  }
+  if (xssPatterns.some(pattern => pattern.test(input))) {
+    return 'xss_attempt';
+  }
+  return 'none';
+}
+
 const app = express();
 const PORT = 3000;
 
@@ -30,7 +62,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Common target for automated scanners/attackers probing for admin panels
 app.post('/admin/login', (req, res) => {
-  logAttempt('login_attempt', req, { username: req.body.username, password: req.body.password });
+  const bruteForce = isBruteForce(req.ip);
+  logAttempt('login_attempt', req, {
+    username: req.body.username,
+    password: req.body.password,
+    flagged_brute_force: bruteForce
+  });
   res.status(401).json({ error: 'Invalid credentials' });
 });
 
@@ -46,10 +83,11 @@ app.get('/api/users', (req, res) => {
   res.status(403).json({ error: 'Forbidden' });
 });
 
-// Fake search endpoint
+// Fake search endpoint — now using SQLi/XSS detection
 app.get('/search', (req, res) => {
   const query = req.query.q || '';
-  logAttempt('search_attempt', req, { query: query });
+  const attackType = detectAttackType(query);
+  logAttempt('search_attempt', req, { query: query, detected_attack_type: attackType });
   res.status(200).send('No results found.');
 });
 
