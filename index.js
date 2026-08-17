@@ -1,7 +1,26 @@
+require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const fs = require('fs');
+const { MongoClient } = require('mongodb');
+
+// ---- MongoDB setup ----
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri);
+let logsCollection;
+
+async function connectDB() {
+  try {
+    await client.connect();
+    const db = client.db('honeypot'); // database name (auto-created if it doesn't exist)
+    logsCollection = db.collection('attacks'); // collection name (auto-created)
+    console.log('Connected to MongoDB Atlas');
+  } catch (err) {
+    console.error('MongoDB connection failed:', err);
+  }
+}
+connectDB();
 
 // Reusable function to log any attack attempt in structured format
 function logAttempt(eventType, req, extra = {}) {
@@ -15,9 +34,17 @@ function logAttempt(eventType, req, extra = {}) {
     ...extra
   };
 
+  // Keep the file log as a local backup (resets on Render restart, but fine as fallback)
   fs.appendFile('attacks.log', JSON.stringify(entry) + '\n', (err) => {
-    if (err) console.error('Failed to write log:', err);
+    if (err) console.error('Failed to write log file:', err);
   });
+
+  // Write to MongoDB (persistent, survives restarts)
+  if (logsCollection) {
+    logsCollection.insertOne(entry).catch(err => {
+      console.error('Failed to write log to MongoDB:', err);
+    });
+  }
 
   console.log(entry);
 }
@@ -55,7 +82,7 @@ function detectAttackType(input) {
 }
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
