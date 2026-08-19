@@ -91,13 +91,14 @@ Node.js, Express, MongoDB Atlas, deployed on Render.
 
 ## Findings
 
-*(To be updated with real data collected during the live deployment window.)*
+*(Live and updating — last checked Aug 19, 2026, ~1 day after deployment.)*
 
-- Total requests captured: TBD
-- Unique source IPs: TBD
-- Most-targeted endpoint: TBD
-- Most common detected attack type: TBD
-- Notable observations: TBD
+- Total requests captured so far: small initial sample (single-digit to low double-digit range), collection ongoing through the deployment window
+- Traffic sources so far: manual testing from multiple networks/locations (Chennai, Haridwar) to validate real-world IP capture; organic/automated traffic expected to accumulate over the following days
+- Most-targeted endpoint so far: `/.env` and `/search`
+- Most common detected attack type so far: none yet flagged from external traffic (test queries used benign strings); detection logic has been separately verified with deliberate SQLi/XSS/brute-force test payloads (see Attack Detection section)
+- Notable observation / real bug found during deployment: the app initially logged all visitor IPs as `::1` (localhost) due to Render's reverse proxy masking the real client IP. Fixed by enabling `app.set('trust proxy', true)` in Express, after which real public IPs (e.g., `152.57.94.221`) were correctly captured. This was an important catch, since accurate IP data is foundational to the brute-force detection logic.
+- Final numbers and any organic attacker patterns will be added closer to the end of the observation window.
 
 ## Future Improvements
 
