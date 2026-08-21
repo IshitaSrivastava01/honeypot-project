@@ -91,14 +91,14 @@ Node.js, Express, MongoDB Atlas, deployed on Render.
 
 ## Findings
 
-*(Live and updating — last checked Aug 19, 2026, ~1 day after deployment.)*
+*(Live and updating — last checked Aug 19, 2026, ~2 days after deployment.)*
 
-- Total requests captured so far: small initial sample (single-digit to low double-digit range), collection ongoing through the deployment window
-- Traffic sources so far: manual testing from multiple networks/locations (Chennai, Haridwar) to validate real-world IP capture; organic/automated traffic expected to accumulate over the following days
-- Most-targeted endpoint so far: `/.env` and `/search`
+- Total requests captured so far: ~10-12 events across testing and manual traffic
+- Traffic sources so far: multiple distinct public IPs from different Indian networks/locations (Chennai, Haridwar), confirming the deployment is genuinely reachable and logging real external visitors correctly
+- Most-targeted endpoints so far: `/.env`, `/api/users`, and `/search`
 - Most common detected attack type so far: none yet flagged from external traffic (test queries used benign strings); detection logic has been separately verified with deliberate SQLi/XSS/brute-force test payloads (see Attack Detection section)
-- Notable observation / real bug found during deployment: the app initially logged all visitor IPs as `::1` (localhost) due to Render's reverse proxy masking the real client IP. Fixed by enabling `app.set('trust proxy', true)` in Express, after which real public IPs (e.g., `152.57.94.221`) were correctly captured. This was an important catch, since accurate IP data is foundational to the brute-force detection logic.
-- Final numbers and any organic attacker patterns will be added closer to the end of the observation window.
+- Notable observation / real bug found during deployment: the app initially logged all visitor IPs as `::1` (localhost) due to Render's reverse proxy masking the real client IP. Fixed by enabling `app.set('trust proxy', true)` in Express, after which real public IPs (e.g., `152.57.94.221`, `49.36.217.18`) were correctly captured from distinct geographic locations. This was an important catch, since accurate IP data is foundational to the brute-force detection logic.
+- Collection is ongoing; organic/automated scanner traffic (as opposed to manually-generated test traffic) may take longer to appear given the deployment's short public lifetime so far. Final numbers will be added closer to the end of the observation window.
 
 ## Future Improvements
 
