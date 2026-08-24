@@ -23,8 +23,6 @@ Request flow:
 4. Every event — detected or not — is logged as a structured JSON object
 5. That log entry is saved permanently to MongoDB Atlas, surviving server restarts
 
-```
-
 ## Fake Endpoints (Traps)
 
 | Endpoint | Method | Simulates | Response |
