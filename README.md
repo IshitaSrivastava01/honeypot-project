@@ -15,24 +15,14 @@ As a Cyber Security undergraduate with hands-on experience assessing web applica
 ---
 
 ## Architecture
+Request flow:
 
-```
-                        ┌─────────────────────┐
-   Internet traffic --> │   Express Server     │
-   (bots, scanners,     │   (Render, public)   │
-    manual testing)     └──────────┬───────────┘
-                                    │
-                    ┌───────────────┼────────────────┐
-                    ▼               ▼                ▼
-             Fake Endpoints   Detection Logic   Structured Logging
-             (5 traps)        (brute-force,     (JSON events)
-                               SQLi/XSS regex)         │
-                                                        ▼
-                                              ┌──────────────────┐
-                                              │  MongoDB Atlas    │
-                                              │  (persistent log  │
-                                              │   storage)         │
-                                              └──────────────────┘
+1. Traffic hits the Express server (public URL on Render)
+2. Request is matched to one of 5 fake endpoints (login, .env, api/users, search, upload)
+3. Detection logic runs (brute-force check on login, SQLi/XSS regex check on search)
+4. Every event — detected or not — is logged as a structured JSON object
+5. That log entry is saved permanently to MongoDB Atlas, surviving server restarts
+
 ```
 
 ## Fake Endpoints (Traps)
