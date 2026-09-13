@@ -69,13 +69,21 @@ function isBruteForce(ip) {
 
 // Detect common SQLi and XSS patterns in user input
 function detectAttackType(input) {
-  const sqliPatterns = [/('|--|;|\bOR\b|\bUNION\b|\bSELECT\b)/i];
+  // Normalize input first: decode URL-encoding and lowercase everything
+  let normalized;
+  try {
+    normalized = decodeURIComponent(input).toLowerCase();
+  } catch (err) {
+    normalized = input.toLowerCase(); // fallback if decoding fails
+  }
+
+  const sqliPatterns = [/('|--|;|\bor\b|\bunion\b|\bselect\b)/i];
   const xssPatterns = [/<script.*?>|javascript:|onerror\s*=|onload\s*=/i];
 
-  if (sqliPatterns.some(pattern => pattern.test(input))) {
+  if (sqliPatterns.some(pattern => pattern.test(normalized))) {
     return 'sqli_attempt';
   }
-  if (xssPatterns.some(pattern => pattern.test(input))) {
+  if (xssPatterns.some(pattern => pattern.test(normalized))) {
     return 'xss_attempt';
   }
   return 'none';
