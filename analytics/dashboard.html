@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Honeypot Security Analytics</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 220px;
+            height: 100vh;
+            background: #11161d;
+            padding: 25px 15px;
+            border-right: 1px solid #252b33;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #7d8b9d;
+            font-size: 12px;
+            margin-bottom: 35px;
+        }
+
+        .nav-item {
+            padding: 13px 12px;
+            margin: 5px 0;
+            color: #9aa8b8;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: #1b2530;
+            color: white;
+        }
+
+        .main {
+            margin-left: 220px;
+            padding: 25px 32px;
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #252b33;
+            padding-bottom: 18px;
+            margin-bottom: 30px;
+        }
+
+        .top h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .status {
+            color: #6fcf97;
+            font-size: 13px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .title {
+            color: #91a1b5;
+            font-size: 13px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: #11161d;
+            border: 1px solid #252b33;
+            padding: 20px;
+        }
+
+        .card p {
+            margin: 0;
+            color: #8291a4;
+            font-size: 12px;
+        }
+
+        .card h1 {
+            margin: 10px 0 5px;
+            font-size: 28px;
+        }
+
+        .card small {
+            color: #718096;
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .box {
+            background: #11161d;
+            border: 1px solid #252b33;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .box h3 {
+            margin-top: 0;
+            font-size: 15px;
+        }
+
+        .chart {
+            height: 300px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 13px;
+            border-bottom: 1px solid #252b33;
+        }
+
+        th {
+            color: #8190a3;
+            font-size: 12px;
+        }
+
+        td {
+            font-size: 13px;
+        }
+
+        .high {
+            color: #f2c94c;
+        }
+
+        .critical {
+            color: #eb5757;
+        }
+
+        .medium {
+            color: #f2994a;
+        }
+
+        .low {
+            color: #6fcf97;
+        }
+
+        @media(max-width: 900px) {
+            .cards,
+            .charts {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <div class="logo">HONEYPOT</div>
+    <div class="subtitle">SECURITY ANALYTICS</div>
+
+    <div class="nav-item active" data-page="overview">Overview</div>
+    <div class="nav-item" data-page="activity">Attack Activity</div>
+    <div class="nav-item" data-page="endpoints">Endpoints</div>
+    <div class="nav-item" data-page="attackers">Attackers</div>
+    <div class="nav-item" data-page="rules">Detection Rules</div>
+
+</div>
+
+
+<div class="main">
+
+    <div class="top">
+        <h2 id="pageTitle">Security Analytics / Overview</h2>
+        <div class="status">● Monitoring</div>
+    </div>
+
+
+    <!-- OVERVIEW -->
+
+    <div id="overview" class="section active">
+
+        <div class="title">Detection Summary</div>
+
+        <div class="cards">
+
+            <div class="card">
+                <p>TOTAL EVENTS</p>
+                <h1 id="totalEvents">-</h1>
+                <small>Logged security events</small>
+            </div>
+
+            <div class="card">
+                <p>ATTACKS DETECTED</p>
+                <h1 id="totalAttacks">-</h1>
+                <small>Events classified as attacks</small>
+            </div>
+
+            <div class="card">
+                <p>UNIQUE ATTACKERS</p>
+                <h1 id="uniqueAttackers">-</h1>
+                <small>Distinct source IPs</small>
+            </div>
+
+            <div class="card">
+                <p>DETECTION COVERAGE</p>
+                <h1 id="coverage">-</h1>
+                <small>Ruleset detection rate</small>
+            </div>
+
+        </div>
+
+        <div class="charts">
+
+            <div class="box">
+                <h3>Daily Attack Activity</h3>
+                <div class="chart">
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+
+            <div class="box">
+                <h3>Attack Types</h3>
+                <div class="chart">
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ATTACK ACTIVITY -->
+
+    <div id="activity" class="section">
+
+        <div class="title">Attack Activity</div>
+
+        <div class="box">
+            <h3>Attack Activity by Hour</h3>
+
+            <div class="chart">
+                <canvas id="hourChart"></canvas>
+            </div>
+        </div>
+
+        <div class="box">
+            <h3>Attack Type Summary</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attack Type</th>
+                        <th>Events</th>
+                    </tr>
+                </thead>
+
+                <tbody id="attackTable"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+
+    <!-- ENDPOINTS -->
+
+    <div id="endpoints" class="section">
+
+        <div class="title">Endpoint Risk</div>
+
+        <div class="box">
+
+            <h3>Endpoint Attack Rate</h3>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Attack Rate</th>
+                        <th>Risk</th>
+                    </tr>
+                </thead>
+
+                <tbody id="endpointTable"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- ATTACKERS -->
+
+    <div id="attackers" class="section">
+
+        <div class="title">Attacker Information</div>
+
+        <div class="box">
+
+            <h3>Top Attacker IPs</h3>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Source IP</th>
+                        <th>Attempts</th>
+                    </tr>
+                </thead>
+
+                <tbody id="ipTable"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- DETECTION RULES -->
+
+    <div id="rules" class="section">
+
+        <div class="title">Detection Rules</div>
+
+        <div class="cards">
+
+            <div class="card">
+                <p>DETECTION COVERAGE</p>
+                <h1 id="ruleCoverage">-</h1>
+                <small>Detected by ruleset</small>
+            </div>
+
+            <div class="card">
+                <p>ATTACK CATEGORIES</p>
+                <h1 id="categoryCount">-</h1>
+                <small>Observed categories</small>
+            </div>
+
+        </div>
+
+        <div class="box">
+
+            <h3>Detected Attack Categories</h3>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Attack Type</th>
+                        <th>Events</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody id="ruleTable"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+let dashboardData = null;
+
+
+/* Load dashboard data */
+
+fetch("../dashboard_data.json")
+    .then(response => response.json())
+    .then(data => {
+
+        dashboardData = data;
+
+        document.getElementById("totalEvents").innerText =
+            data.total_events.toLocaleString();
+
+        document.getElementById("totalAttacks").innerText =
+            data.total_attacks_detected.toLocaleString();
+
+        document.getElementById("uniqueAttackers").innerText =
+            data.unique_attacker_ips.toLocaleString();
+
+        document.getElementById("coverage").innerText =
+            data.detection_rate_pct + "%";
+
+        document.getElementById("ruleCoverage").innerText =
+            data.detection_rate_pct + "%";
+
+        document.getElementById("categoryCount").innerText =
+            data.type_distribution.length;
+
+
+        createCharts(data);
+        fillTables(data);
+
+    })
+    .catch(error => {
+        console.log("Could not load dashboard data:", error);
+    });
+
+
+
+/* Charts */
+
+function createCharts(data) {
+
+    new Chart(document.getElementById("dailyChart"), {
+        type: "line",
+        data: {
+            labels: data.daily_trend.map(x => x.date),
+            datasets: [{
+                label: "Attacks",
+                data: data.daily_trend.map(x => x.attack_count),
+                borderWidth: 2,
+                tension: 0.2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+
+    new Chart(document.getElementById("typeChart"), {
+        type: "bar",
+        data: {
+            labels: data.type_distribution.map(x => x.attack_type),
+            datasets: [{
+                label: "Events",
+                data: data.type_distribution.map(x => x.count)
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+
+    new Chart(document.getElementById("hourChart"), {
+        type: "line",
+        data: {
+            labels: data.hourly_pattern.map(x => x.hour),
+            datasets: [{
+                label: "Attacks",
+                data: data.hourly_pattern.map(x => x.count),
+                borderWidth: 2,
+                tension: 0.2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+}
+
+
+
+/* Tables */
+
+function fillTables(data) {
+
+    const attackTable =
+        document.getElementById("attackTable");
+
+    data.type_distribution.forEach(item => {
+
+        attackTable.innerHTML += `
+            <tr>
+                <td>${item.attack_type}</td>
+                <td>${item.count}</td>
+            </tr>
+        `;
+
+    });
+
+
+    const endpointTable =
+        document.getElementById("endpointTable");
+
+    data.endpoint_risk
+        .sort((a, b) => b.attack_rate_pct - a.attack_rate_pct)
+        .forEach(item => {
+
+            let risk = "LOW";
+            let className = "low";
+
+            if (item.attack_rate_pct >= 70) {
+                risk = "CRITICAL";
+                className = "critical";
+            }
+            else if (item.attack_rate_pct >= 50) {
+                risk = "HIGH";
+                className = "high";
+            }
+            else if (item.attack_rate_pct >= 25) {
+                risk = "MEDIUM";
+                className = "medium";
+            }
+
+            endpointTable.innerHTML += `
+                <tr>
+                    <td>${item.endpoint}</td>
+                    <td>${item.attack_rate_pct}%</td>
+                    <td class="${className}">${risk}</td>
+                </tr>
+            `;
+
+        });
+
+
+    const ipTable =
+        document.getElementById("ipTable");
+
+    data.top_ips.forEach((item, index) => {
+
+        ipTable.innerHTML += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${item.source_ip}</td>
+                <td>${item.attempts}</td>
+            </tr>
+        `;
+
+    });
+
+
+    const ruleTable =
+        document.getElementById("ruleTable");
+
+    data.type_distribution.forEach(item => {
+
+        ruleTable.innerHTML += `
+            <tr>
+                <td>${item.attack_type}</td>
+                <td>${item.count}</td>
+                <td class="low">DETECTED</td>
+            </tr>
+        `;
+
+    });
+
+}
+
+
+
+/* Sidebar navigation */
+
+const navItems =
+    document.querySelectorAll(".nav-item");
+
+const sections =
+    document.querySelectorAll(".section");
+
+navItems.forEach(item => {
+
+    item.addEventListener("click", function() {
+
+        const page = this.dataset.page;
+
+        navItems.forEach(nav => {
+            nav.classList.remove("active");
+        });
+
+        this.classList.add("active");
+
+
+        sections.forEach(section => {
+            section.classList.remove("active");
+        });
+
+        document.getElementById(page)
+            .classList.add("active");
+
+
+        const titles = {
+            overview: "Security Analytics / Overview",
+            activity: "Security Analytics / Attack Activity",
+            endpoints: "Security Analytics / Endpoints",
+            attackers: "Security Analytics / Attackers",
+            rules: "Security Analytics / Detection Rules"
+        };
+
+        document.getElementById("pageTitle").innerText =
+            titles[page];
+
+    });
+
+});
+
+</script>
+
+</body>
+</html>

@@ -1,102 +1,182 @@
 # Web Application Honeypot & Attack Detection System
 
-A multi-endpoint honeypot built to simulate common vulnerable web application surfaces, capture real attacker/scanner behavior, and detect basic attack patterns (brute-force, SQL injection, XSS) in real time.
+A web application honeypot built to simulate common vulnerable endpoints, capture real and test attack traffic, detect basic attack patterns (brute-force, SQL injection, XSS), and analyze captured events through a Python-based security analytics dashboard.
 
-**Live demo:** https://honeypot-project-0gt6.onrender.com
+**Live Demo:** https://honeypot-project-0gt6.onrender.com
 
-> Note: as a honeypot, this application intentionally *looks* vulnerable to attract probing traffic. No real user data, credentials, or exploitable vulnerabilities are present — see [Security & Isolation](#security--isolation) below.
+> This is an educational security project. The fake endpoints do not contain real user data, credentials, or exploitable production functionality.
 
 ---
 
-## Why I built this
+## Why I Built This
 
-As a Cyber Security undergraduate with hands-on experience assessing web application vulnerabilities (SQLi, XSS, CSRF) during a security internship, I wanted to go a step further than *finding* vulnerabilities — I wanted to understand attacker behavior directly, by building a system designed to attract and observe it. This project let me apply real security engineering (secure logging, input handling, deception design) rather than just studying it.
+As a Cyber Security undergraduate, I wanted hands-on experience with the full lifecycle of a security monitoring system — not just detecting attacks, but capturing, logging, and analyzing them the way a real security tool would. This project let me combine web application security, honeypot/deception design, and data analysis in one system.
+
+This project involved practicing:
+- Web application security
+- Honeypot and deception design
+- Rule-based attack detection
+- Structured security logging
+- Security data analysis (Python/Pandas)
 
 ---
 
 ## Architecture
-Request flow:
 
-1. Traffic hits the Express server (public URL on Render)
-2. Request is matched to one of 5 fake endpoints (login, .env, api/users, search, upload)
-3. Detection logic runs (brute-force check on login, SQLi/XSS regex check on search)
-4. Every event — detected or not — is logged as a structured JSON object
-5. That log entry is saved permanently to MongoDB Atlas, surviving server restarts
+```text
+Incoming Request
+       |
+       v
+Express Honeypot Server
+       |
+       +---- Fake Endpoints
+       |
+       +---- Detection Rules
+       |
+       v
+Structured Logs (attacks.log / MongoDB)
+       |
+       v
+Python + Pandas Analytics (analyze.py)
+       |
+       v
+Security Dashboard (dashboard.html)
+```
 
-## Fake Endpoints (Traps)
+## Fake Endpoints
 
-| Endpoint | Method | Simulates | Response |
-|---|---|---|---|
-| `/admin/login` | POST | Admin panel brute-force target | 401 Unauthorized |
-| `/.env` | GET | Exposed environment/config file | 404 Not Found |
-| `/api/users` | GET | Insecure API leaking user data | 403 Forbidden |
-| `/search` | GET | Search feature vulnerable to SQLi/XSS | 200, generic "no results" |
-| `/upload` | POST | Insecure file upload endpoint | 500 Internal Server Error |
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/admin/login` | POST | Brute-force detection |
+| `/.env` | GET | Configuration/secret exposure probe |
+| `/api/users` | GET | API enumeration |
+| `/search` | GET | SQL injection and XSS detection |
+| `/upload` | POST | File upload monitoring |
 
-Each endpoint returns a realistic, generic response (not an obvious error), so it doesn't reveal itself as a honeypot to a scanning tool or attacker.
-
-## Structured Logging
-
-Every request to a trap endpoint is captured as a structured event and stored in MongoDB Atlas (chosen over SQL for flexible, JSON-shaped event data and to survive server restarts on free hosting). Each event includes:
-
-- Timestamp
-- Source IP
-- Endpoint & HTTP method
-- User-Agent
-- Payload/query (where applicable)
-- Event type
-- Detection flags (see below)
+Each endpoint is designed to look realistic to scanners and attackers while remaining fully isolated from any real application data.
 
 ## Attack Detection
 
-Two rule-based detectors are implemented:
+Detection is currently rule-based:
 
-**Brute-force detection** — tracks login attempts per IP in a rolling 30-second window. More than 3 attempts in that window flags the event as `flagged_brute_force: true`.
+**Brute-force detection** — repeated login attempts from the same IP within a short rolling time window are tracked and flagged as suspicious.
 
-**SQL Injection / XSS detection** — the `/search` endpoint's query parameter is checked against regex patterns for common SQLi indicators (`OR`, `UNION`, `SELECT`, quote characters, comment sequences) and XSS indicators (`<script>`, `javascript:`, inline event handlers). Matches are tagged with `detected_attack_type`.
+**SQL injection detection** — the `/search` endpoint checks input for common SQLi indicators (`OR`, `UNION`, `SELECT`, quote characters, comment sequences).
 
-## A real vulnerability I found (and fixed)
+**XSS detection** — the same endpoint checks for common XSS indicators (`<script>`, `javascript:`, inline event handlers). Input is normalized (URL-decoded and lowercased) before matching to catch basic encoding/case-based evasion.
 
-While building the `/search` endpoint, I initially reflected the user's raw query directly back in the HTTP response. Testing it with `<script>alert(1)</script>` caused the script to actually execute in my browser — I had unintentionally built a real, exploitable reflected XSS vulnerability rather than a simulated one.
+## Security Logging
 
-I fixed this by logging the attempted payload (for detection purposes) without ever reflecting raw input back in the response — the honeypot needs to *look* vulnerable, not *be* vulnerable, especially once deployed publicly.
+Each captured event includes:
+- Timestamp
+- Source IP
+- Endpoint
+- HTTP method
+- User-Agent
+- Request/query data
+- Event type
+- Detection result
 
-## Security & Isolation
+Events are stored as structured JSON, enabling later analysis rather than relying on unstructured console output.
 
-- No real user data, credentials, or secrets exist anywhere in the system
-- Fake endpoints never process or store real files/data — uploads are logged (filename, type, size) but not served back or executed
-- MongoDB access is credential-protected; database user has minimal required permissions
-- Hosted on Render's free tier, isolated from any personal infrastructure
+## Security Analytics Dashboard
 
-**Known limitations (honestly noted):**
-- Network access for the database is currently open (`0.0.0.0/0`) for simplicity during development — a production system would restrict this to specific IPs
-- No rate limiting beyond brute-force detection/logging (requests aren't blocked, only flagged)
-- Single-server deployment; no correlation of requests into attack "sessions" yet (see Future Improvements)
+A Python + Pandas analytics layer (`analytics/analyze.py`) processes captured log data and generates `dashboard_data.json`, which powers a dashboard (`dashboard.html`) displaying:
+- Total events
+- Detected attacks
+- Unique attacker IPs
+- Detection rate
+- Attack types
+- Peak attack hour
+- Most-targeted endpoints
+- Attack activity over time
+
+### Data Note — Real vs. Synthetic
+
+The repository includes a synthetic data generator (`analytics/generate_data.py`) used **only** to test and validate the analytics pipeline before connecting it to real data — this produced a 2,500-event test dataset used purely for development.
+
+**The dashboard's actual analysis is based on real captured events in `attacks.log`**, not the synthetic dataset. As of the latest run, the real log contains:
+
+- **29** total events
+- **23** detected attacks
+- **2** unique source IPs
+- **79.3%** detection rate
+- Peak activity around **15:00**
+- **`/.env`** as the most-targeted endpoint
+- **Brute-force** as the most common detected attack type
+
+This distinction is intentional and disclosed here to avoid presenting synthetic test data as real attacker traffic. Given Render's free-tier hosting and the deployment's limited public lifetime so far, real traffic volume is modest — organic scanner/bot traffic depends on the URL being discovered, which takes time.
+
+## A Real XSS Issue I Found and Fixed
+
+While building the `/search` endpoint, I initially reflected the user's raw query directly into the HTTP response. Testing with:
+
+```
+<script>alert(1)</script>
+```
+
+caused the script to actually execute in my browser — I had unintentionally created a real, exploitable reflected XSS vulnerability rather than a simulated one.
+
+I fixed this by removing raw user input from the response entirely, while still logging the attempted payload for detection purposes. The honeypot needs to *look* vulnerable to attract traffic, not *be* vulnerable once deployed publicly.
+
+## Deployment
+
+The application is deployed on Render.
+
+During deployment, all requests initially appeared to originate from `localhost` (`::1`) because Render's reverse proxy was masking the real client IP. I fixed this by configuring Express to trust the deployment proxy:
+
+```javascript
+app.set('trust proxy', true);
+```
+
+After this fix, real public client IPs were correctly captured — this was an important catch, since accurate IP data is foundational to the brute-force detection logic.
 
 ## Tech Stack
 
-Node.js, Express, MongoDB Atlas, deployed on Render.
+- **Backend:** Node.js, Express.js
+- **Database:** MongoDB Atlas
+- **Analytics:** Python, Pandas
+- **Frontend (dashboard):** HTML, CSS, JavaScript
+- **Deployment:** Render
 
-## Findings
+## Project Structure
 
-*(Live and updating — last checked Aug 19, 2026, ~2 days after deployment.)*
+```
+honeypot-project/
+├── index.js
+├── attacks.log
+├── README.md
+├── package.json
+│
+├── analytics/
+│   ├── analyze.py
+│   ├── dashboard.html
+│   ├── dashboard_data.json
+│   ├── generate_data.py
+│   └── honeypot_logs.csv
+│
+└── uploads/
+```
 
-- Total requests captured so far: ~10-12 events across testing and manual traffic
-- Traffic sources so far: multiple distinct public IPs from different Indian networks/locations (Chennai, Haridwar), confirming the deployment is genuinely reachable and logging real external visitors correctly
-- Most-targeted endpoints so far: `/.env`, `/api/users`, and `/search`
-- Most common detected attack type so far: none yet flagged from external traffic (test queries used benign strings); detection logic has been separately verified with deliberate SQLi/XSS/brute-force test payloads (see Attack Detection section)
-- Notable observation / real bug found during deployment: the app initially logged all visitor IPs as `::1` (localhost) due to Render's reverse proxy masking the real client IP. Fixed by enabling `app.set('trust proxy', true)` in Express, after which real public IPs (e.g., `152.57.94.221`, `49.36.217.18`) were correctly captured from distinct geographic locations. This was an important catch, since accurate IP data is foundational to the brute-force detection logic.
-- Collection is ongoing; organic/automated scanner traffic (as opposed to manually-generated test traffic) may take longer to appear given the deployment's short public lifetime so far. Final numbers will be added closer to the end of the observation window.
+## Known Limitations
+
+- Detection is currently rule-based (regex/threshold-based), not behavioral or ML-based
+- Public traffic volume is limited, given the deployment's short lifetime and free-tier hosting
+- Suspicious requests are logged and flagged, but not automatically blocked
+- Attack sessions from the same source are not yet correlated into a timeline
+- MongoDB network access is currently open (`0.0.0.0/0`) for development simplicity
+- Intended for educational/portfolio use rather than production security monitoring
 
 ## Future Improvements
 
-Given more time, the next additions would be:
-- **Session correlation** — grouping multiple requests from the same IP into a coherent attack timeline (recon → brute-force → injection attempt)
-- **A monitoring dashboard** — real-time view of recent attacks, categories, and charts
-- **IP geolocation** — visualizing where traffic originates
-- **Additional detection types** — path traversal, command injection
-- **Rate limiting / active blocking**, not just passive flagging
+- Session-based attack correlation (grouping related requests into an attack timeline)
+- Path traversal and command injection detection
+- Rate limiting and active blocking, not just passive flagging
+- IP geolocation
+- Dashboard filtering and alerting
 
-## What I learned
+## What I Learned
 
-Building this project reinforced how much of security engineering is about designing realistic deception, not just detecting known attack signatures. Debugging a real XSS vulnerability I introduced myself gave me a much more concrete understanding of *why* input sanitization matters than reading about it during my internship ever did.
+This project gave me practical, end-to-end experience across web security, honeypot design, structured logging, rule-based attack detection, deployment, and security data analysis with Python/Pandas.
+
+It also taught me how infrastructure details — like reverse proxies masking client IPs — can silently affect security monitoring accuracy, and reinforced why safe input handling matters even in a system explicitly designed to look vulnerable.
