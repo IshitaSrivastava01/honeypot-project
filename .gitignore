@@ -2,3 +2,4 @@ node_modules
 attacks.log
 uploads/
 .env
+dashboard_data.json
