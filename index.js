@@ -4,6 +4,7 @@ const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const fs = require('fs');
 const { MongoClient } = require('mongodb');
+const { detectAttackType } = require('./detector');
 
 // ---- MongoDB setup ----
 const uri = process.env.MONGODB_URI;
@@ -67,27 +68,7 @@ function isBruteForce(ip) {
   return loginAttempts[ip].length > maxAttempts;
 }
 
-// Detect common SQLi and XSS patterns in user input
-function detectAttackType(input) {
-  // Normalize input first: decode URL-encoding and lowercase everything
-  let normalized;
-  try {
-    normalized = decodeURIComponent(input).toLowerCase();
-  } catch (err) {
-    normalized = input.toLowerCase(); // fallback if decoding fails
-  }
-
-  const sqliPatterns = [/('|--|;|\bor\b|\bunion\b|\bselect\b)/i];
-  const xssPatterns = [/<script.*?>|javascript:|onerror\s*=|onload\s*=/i];
-
-  if (sqliPatterns.some(pattern => pattern.test(normalized))) {
-    return 'sqli_attempt';
-  }
-  if (xssPatterns.some(pattern => pattern.test(normalized))) {
-    return 'xss_attempt';
-  }
-  return 'none';
-}
+// SQLi/XSS detection lives in detector.js (shared with test_detection.js)
 
 const app = express();
 app.set('trust proxy', true);
