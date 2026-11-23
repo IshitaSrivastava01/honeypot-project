@@ -1,0 +1,31 @@
+timestamp,date,hour_utc,hour_ist,ip,endpoint,endpoint_base,method,userAgent,eventType,query,detected_attack_type,flagged_brute_force
+2026-08-13T06:54:33.628Z,2026-08-13,6,12,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,
+2026-08-13T06:57:30.606Z,2026-08-13,6,12,::1,/.env,/.env,GET,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",env_scan,,,
+2026-08-13T06:57:39.290Z,2026-08-13,6,12,::1,/api/users,/api/users,GET,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",user_enumeration,,,
+2026-08-13T06:57:48.666Z,2026-08-13,6,12,::1,/search?q=%3Cscript%3Ealert(1)%3C/script%3E,/search,GET,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",search_attempt,<script>alert(1)</script>,,
+2026-08-13T07:40:03.596Z,2026-08-13,7,13,::ffff:127.0.0.1,/upload,/upload,POST,Thunder Client (https://www.thunderclient.com),file_upload_attempt,,,
+2026-08-13T08:37:52.287Z,2026-08-13,8,14,::1,/upload,/upload,POST,curl/8.21.0,file_upload_attempt,,,
+2026-08-13T08:39:46.487Z,2026-08-13,8,14,::1,/upload,/upload,POST,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",file_upload_attempt,,,
+2026-08-16T15:48:58.715Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,false
+2026-08-16T15:48:58.782Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,false
+2026-08-16T15:48:58.951Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,false
+2026-08-16T15:48:59.099Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:48:59.267Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:48:59.388Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:48:59.630Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:48:59.792Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:48:59.966Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:49:00.175Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:49:00.350Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:49:00.475Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:49:00.627Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:49:00.745Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:49:00.895Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:49:01.013Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:49:01.254Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:49:02.436Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:49:03.321Z,2026-08-16,15,21,::ffff:127.0.0.1,/admin/login,/admin/login,POST,Thunder Client (https://www.thunderclient.com),login_attempt,,,true
+2026-08-16T15:58:34.557Z,2026-08-16,15,21,::1,/search?q=%3Cscript%3Ealert(1)%3C/script%3E,/search,GET,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",search_attempt,<script>alert(1)</script>,xss_attempt,
+2026-08-16T15:58:41.634Z,2026-08-16,15,21,::1,/search?q=%27%20OR%201=1%20--,/search,GET,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",search_attempt,' OR 1=1 --,sqli_attempt,
+2026-08-17T20:24:06.822Z,2026-08-17,20,1,::1,/search?q=test123,/search,GET,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",search_attempt,test123,none,
+2026-11-23T09:54:53.265Z,2026-11-23,9,15,::1,/search?q=%27%20OR%201=1--,/search,GET,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",search_attempt,' OR 1=1--,sqli_attempt,
